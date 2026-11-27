@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>AURIX Admin Panel</title>
+<style>
+:root{--bg:#05060a;--card:#0d1018;--line:#1d2433;--silver:#c9d1dc;--blue:#2d8cff;--blue2:#00d4ff;--red:#ff4d6d}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1200px 600px at 80% -10%,#0b2a55 0,transparent 60%),var(--bg);color:var(--silver);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
+h2,h3{margin:0;letter-spacing:.12em;text-transform:uppercase}
+.logo{font-weight:800;letter-spacing:.35em;background:linear-gradient(90deg,#fff,var(--blue2),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent}
+.wrap{max-width:1000px;margin:0 auto;padding:16px}
+.card{background:linear-gradient(160deg,#0f1420,var(--card));border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px}
+input,textarea{width:100%;background:#070910;color:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;margin:6px 0 12px;font-family:inherit}
+input:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(45,140,255,.2)}
+label{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#8fa0b8}
+button{cursor:pointer;border:0;border-radius:10px;padding:12px 18px;font-weight:700;letter-spacing:.06em;font-size:14px;color:#fff;background:linear-gradient(90deg,var(--blue),var(--blue2))}
+button.ghost{background:transparent;border:1px solid var(--line);color:var(--silver)}
+button.danger{background:transparent;border:1px solid var(--red);color:var(--red)}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:130px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.p{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#0a0d15}
+.p img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.p .b{padding:12px}.p .n{color:#fff;font-weight:700}.p .pr{color:var(--blue2);font-weight:800;margin:4px 0 10px}
+.p .btns{display:flex;gap:8px}.p .btns button{flex:1;padding:9px;font-size:12px}
+#preview{max-width:140px;border-radius:10px;display:none;margin-bottom:10px;border:1px solid var(--line)}
+#msg{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#111a2b;border:1px solid var(--blue);padding:12px 18px;border-radius:12px;display:none;z-index:9;max-width:90%}
+.hide{display:none!important}.muted{color:#7d8ba0;font-size:13px}.badge{font-size:11px;padding:3px 8px;border-radius:99px;background:#16233a;color:var(--blue2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div id="loginView" class="card hide" style="max-width:420px;margin:12vh auto 0">
+  <h2 class="logo" style="text-align:center;margin-bottom:6px">AURIX</h2>
+  <p id="loginSub" class="muted" style="text-align:center;margin:0 0 18px">Admin Login</p>
+  <form id="loginForm">
+    <label>Username</label><input id="user" autocomplete="username" required>
+    <label>Password</label><input id="pass" type="password" autocomplete="current-password" minlength="6" required>
+    <div id="confirmBox" class="hide"><label>Confirm password</label><input id="pass2" type="password" autocomplete="new-password"></div>
+    <button style="width:100%" id="loginBtn">LOGIN</button>
+  </form>
+  <p id="loginErr" class="muted" style="color:#ff4d6d"></p>
+</div>
+
+<div id="dash" class="hide">
+  <header>
+    <h2 class="logo">AURIX ADMIN</h2>
+    <div class="row" style="flex:0 0 auto"><a href="index.html"><button class="ghost" type="button">VIEW SITE</button></a><button class="ghost" id="logoutBtn" type="button">LOGOUT</button></div>
+  </header>
+
+  <div class="card">
+    <h3 id="formTitle" style="margin-bottom:14px">Add Product</h3>
+    <form id="pForm">
+      <input type="hidden" id="pid">
+      <label>Product name</label><input id="pname" maxlength="120" required>
+      <div class="row">
+        <div><label>Price (LKR)</label><input id="pprice" type="number" min="0" step="0.01" inputmode="decimal" required></div>
+        <div><label>Category (optional)</label><input id="pcat" maxlength="60"></div>
+      </div>
+      <label>Description</label><textarea id="pdesc" rows="3" maxlength="1000"></textarea>
+      <label>Product image</label>
+      <img id="preview" alt="">
+      <input id="pimg" type="file" accept="image/*">
+      <label style="display:flex;gap:8px;align-items:center;text-transform:none"><input id="pvis" type="checkbox" checked style="width:auto;margin:0"> Show on website</label>
+      <div class="row" style="margin-top:14px"><button>SAVE PRODUCT</button><button type="button" class="ghost" id="cancelBtn">CLEAR</button></div>
+    </form>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><h3>Products</h3><span class="badge" id="count">0</span></div>
+    <div id="list" class="grid"></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:8px">Backup &amp; Publish</h3>
+    <p class="muted">Products live in this browser only. To show them to all visitors, export <b>products.json</b> and upload it to your GitHub repo next to index.html.</p>
+    <div class="row">
+      <button id="exportBtn" type="button">EXPORT products.json</button>
+      <button class="ghost" id="importBtn" type="button">IMPORT</button>
+      <button class="ghost" id="pwBtn" type="button">CHANGE PASSWORD</button>
+    </div>
+    <input id="importFile" type="file" accept="application/json" class="hide">
+  </div>
+</div>
+</div>
+<div id="msg"></div>
+
+<script>
+const KEY="aurix_products", AUTH="aurix_admin", SESSION="aurix_session";
+const $=id=>document.getElementById(id);
+const toast=t=>{const m=$("msg");m.textContent=t;m.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(()=>m.style.display="none",3000)};
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const lkr=n=>"LKR "+Number(n).toLocaleString("en-LK",{maximumFractionDigits:2});
+const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||[]}catch{return[]}};
+const save=a=>{try{localStorage.setItem(KEY,JSON.stringify(a));return true}catch{toast("Storage full - use smaller images or delete items");return false}};
+async function hash(pw,salt){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(salt+":"+pw));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+const getAuth=()=>{try{return JSON.parse(localStorage.getItem(AUTH))}catch{return null}};
+
+// ---- Login (first visit = create admin account) ----
+let changing=false;
+function showLogin(){
+  const first=!getAuth()||changing;
+  $("loginView").classList.remove("hide");$("dash").classList.add("hide");
+  $("confirmBox").classList.toggle("hide",!first);$("pass2").required=first;
+  $("loginSub").textContent=changing?"Set new admin password":first?"First time: create admin account":"Admin Login";
+  $("loginBtn").textContent=first?"CREATE & LOGIN":"LOGIN";
+}
+function showDash(){$("loginView").classList.add("hide");$("dash").classList.remove("hide");render()}
+$("loginForm").addEventListener("submit",async e=>{
+  e.preventDefault();$("loginErr").textContent="";
+  const u=$("user").value.trim(),p=$("pass").value,a=getAuth();
+  if(!a||changing){
+    if(p!==$("pass2").value){$("loginErr").textContent="Passwords do not match.";return}
+    const salt=crypto.getRandomValues(new Uint32Array(4)).join("-");
+    localStorage.setItem(AUTH,JSON.stringify({u,salt,h:await hash(p,salt)}));
+    changing=false;sessionStorage.setItem(SESSION,"1");showDash();toast("Admin account saved");
+  }else if(u===a.u&&await hash(p,a.salt)===a.h){sessionStorage.setItem(SESSION,"1");showDash()}
+  else $("loginErr").textContent="Wrong username or password.";
+  $("pass").value="";$("pass2").value="";
+});
+$("logoutBtn").onclick=()=>{sessionStorage.removeItem(SESSION);showLogin()};
+$("pwBtn").onclick=()=>{changing=true;showLogin()};
+
+// ---- Image compression ----
+let imageData=null;
+function compress(file,max,q){return new Promise((res,rej)=>{const img=new Image(),url=URL.createObjectURL(file);
+  img.onload=()=>{const r=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement("canvas");
+  c.width=Math.round(img.width*r);c.height=Math.round(img.height*r);c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+  URL.revokeObjectURL(url);res(c.toDataURL("image/jpeg",q))};img.onerror=rej;img.src=url})}
+$("pimg").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;
+  try{imageData=await compress(f,700,.75);$("preview").src=imageData;$("preview").style.display="block"}catch{toast("Could not read image")}});
+
+// ---- CRUD ----
+$("pForm").addEventListener("submit",e=>{
+  e.preventDefault();const list=load(),id=$("pid").value;
+  const data={name:$("pname").value.trim(),price:Math.max(0,Number($("pprice").value)),category:$("pcat").value.trim(),description:$("pdesc").value.trim(),visible:$("pvis").checked};
+  if(id){const p=list.find(x=>x.id===id);if(!p)return;Object.assign(p,data);if(imageData)p.image=imageData}
+  else{if(!imageData){toast("Please choose an image");return}list.unshift({id:"p"+Date.now(),image:imageData,created:Date.now(),...data})}
+  if(save(list)){toast("Product saved");clearForm();render()}
+});
+function clearForm(){$("pForm").reset();$("pid").value="";imageData=null;$("preview").style.display="none";$("formTitle").textContent="Add Product";$("pvis").checked=true}
+$("cancelBtn").onclick=clearForm;
+function render(){
+  const list=load();$("count").textContent=list.length;
+  $("list").innerHTML=list.map(p=>`<div class="p"><img src="${esc(p.image)}" alt=""><div class="b"><div class="n">${esc(p.name)}</div><div class="pr">${lkr(p.price)}</div>${p.visible===false?'<span class="badge">Hidden</span>':''}<div class="btns" style="margin-top:8px"><button data-e="${p.id}">EDIT</button><button class="danger" data-d="${p.id}">DELETE</button></div></div></div>`).join("")||'<p class="muted">No products yet.</p>';
+}
+$("list").addEventListener("click",e=>{
+  const eid=e.target.dataset.e,did=e.target.dataset.d,list=load();
+  if(eid){const p=list.find(x=>x.id===eid);if(!p)return;
+    $("pid").value=p.id;$("pname").value=p.name;$("pprice").value=p.price;$("pcat").value=p.category||"";$("pdesc").value=p.description||"";$("pvis").checked=p.visible!==false;
+    $("preview").src=p.image;$("preview").style.display="block";imageData=null;$("formTitle").textContent="Edit Product";scrollTo({top:0,behavior:"smooth"})}
+  if(did&&confirm("Delete this product?")){if(save(list.filter(x=>x.id!==did))){render();toast("Deleted")}}
+});
+
+// ---- Export / import ----
+$("exportBtn").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(load())],{type:"application/json"}));a.download="products.json";a.click()};
+$("importBtn").onclick=()=>$("importFile").click();
+$("importFile").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;
+  try{const d=JSON.parse(await f.text());if(!Array.isArray(d))throw 0;if(save(d)){render();toast("Imported "+d.length+" products")}}catch{toast("Invalid file")}e.target.value=""});
+
+sessionStorage.getItem(SESSION)&&getAuth()?showDash():showLogin();
+</script>
+</body>
+</html>
